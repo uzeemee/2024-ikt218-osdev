@@ -30,7 +30,7 @@ section .text
 bits 32
 
 _start:
-    cli
+    cli ; Clear/Disable Interrupt Flag (cli) || sti Set/Enable Interuppt Flag
 
     mov esp, stack_top
 
@@ -41,5 +41,6 @@ _start:
 
 section .bss
 stack_bottom:
-    resb 4096 * 16
+    resb 4096 * 16  ; Reserving bytes in memory
 stack_top:
+

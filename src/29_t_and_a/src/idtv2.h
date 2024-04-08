@@ -40,8 +40,6 @@ void idt_load(struct idt_ptr *idt_ptr);
 // Define an interrupt handler
 void interrupt_handler();
 
-
-
 #define IRQ0 32
 #define IRQ1 33
 #define IRQ2 34

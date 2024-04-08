@@ -53,3 +53,14 @@
 #define HEX_LIGHT_PURPLE 0xFF55FF
 #define HEX_YELLOW      0xFFFF55
 #define HEX_WHITE       0xFFFFFF
+
+#define MAX_CHARACTERS_PER_ROW 50 
+#define TEXT_COLOR COLOR_GREEN
+
+size_t strlen(const char* str);
+char* itoa(int value, char* str, int base);
+void write_string(int colour, const char *string, int row, int col);
+void vga_printf(int color, int row, int col, const char* format, ...);
+void int_to_hex(int value, char* buffer);
+void int_to_str(int value, char* buffer);
+void printf(const char* format, ...);

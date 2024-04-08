@@ -1,9 +1,7 @@
+#include "libc/stdint.h" // Include necessary standard library headers
 #include "gdtv2.h" 
-// Include necessary standard library headers
-#include "libc/stdint.h"
 
-// Define global variables
-struct gdt_entry gdt[GDT_ENTRIES];
+struct gdt_entry gdt[GDT_ENTRIES]; // Define global variables
 struct gdt_ptr gdt_ptr;
 
 

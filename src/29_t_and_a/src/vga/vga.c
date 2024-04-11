@@ -1,9 +1,118 @@
+#include "vga.h"
 #include "libc/stdint.h"
 #include "libc/stddef.h"
 #include "libc/stdbool.h"
 #include "libc/stdarg.h"
-#include "vga.h" 
 
+uint16_t column = 0;
+uint16_t line = 0;
+uint16_t row = 0;
+uint16_t* const vga = (uint16_t* const) 0xB8000;
+const uint16_t defaultColor = (COLOR_GREEN << 8) | (COLOR_BLACK << 12);
+uint16_t currentColor = defaultColor;
+
+void Reset(){
+    line = 0;
+    column = 0;
+    row = 0;
+    currentColor = defaultColor;
+
+    for (uint16_t y = 0; y < height; y++){
+        for (uint16_t x = 0; x < width; x++){
+            vga[y * width + x] = ' ' | defaultColor;
+        }
+    }
+}
+
+void newLine(){
+    if (line < height - 1){
+        line++;
+        row++;
+        column = 0;
+    }else{
+        scrollUp();
+        column = 0;
+    }
+}
+
+void scrollUp(){
+    for (uint16_t y = 0; y < height; y++){
+        for (uint16_t x = 0; x < width; x++){
+            vga[(y-1) * width + x] = vga[y*width+x];
+        }
+    }
+
+    for (uint16_t x = 0; x < width; x++){
+        vga[(height-1) * width + x] = ' ' | currentColor;
+    }
+}
+
+void print(const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+
+    while (*format) {
+        if (*format == '%') {
+            format++; // Move past '%'
+            switch (*format) {
+                case 'd': {
+                    int value = va_arg(args, int);
+                    char buffer[16]; // Adjust size as needed
+                    int_to_str(value, buffer); // Convert integer to string
+                    print(buffer);
+                    break;
+                }
+                case 'x': {
+                    int value = va_arg(args, int);
+                    char buffer[9]; // Assuming 32-bit integer, adjust size as needed
+                    int_to_hex(value, buffer); // Convert integer to hexadecimal string
+                    print(buffer);
+                    break;
+                }
+                case 's': {
+                    char* value = va_arg(args, char*);
+                    print(value);
+                    break;
+                }
+                case 'n': {
+                    newLine();
+                    break;
+                }
+                default:
+                    // Handle unsupported format specifiers
+                    break;
+            }
+        } else {
+            switch (*format) {
+                case '\n':
+                    newLine();
+                    break;
+                case '\r':
+                    column = 0;
+                    break;
+                case '\t': {
+                    if (column == width) {
+                        newLine();
+                    }
+                    uint16_t tabLen = 4 - (column % 4);
+                    while (tabLen != 0) {
+                        vga[line * width + (column++)] = ' ' | currentColor;
+                        tabLen--;
+                    }
+                    break;
+                }
+                default:
+                    if (column == width) {
+                        newLine();
+                    }
+                    vga[line * width + (column++)] = *format | currentColor;
+                    break;
+            }
+        }
+        format++;
+    }
+    va_end(args);
+}
 
 char * itoa( int value, char * str, int base )
 {
@@ -124,7 +233,6 @@ void int_to_str(int value, char* buffer) {
     buffer[i] = '\0';
 }
 
-
 void vga_printf(int color, int row, int col, const char* format, ...) {
     // Start parsing the format string and its arguments
     va_list args;
@@ -188,8 +296,6 @@ void printf(const char* format, ...) {
     // Start parsing the format string and its arguments
     va_list args;
     va_start(args, format);
-
-    int row = 0;
     int col = 0;
 
     while (*format) {
@@ -253,7 +359,11 @@ void printf(const char* format, ...) {
 
         format++; // Move to the next character in the format string
     }
-
+    newLine();
     // Clean up the argument list
     va_end(args);
+}
+
+void reset(){
+    Reset();
 }

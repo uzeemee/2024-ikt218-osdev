@@ -1,7 +1,8 @@
 #include "memory.h"
 #include "libc/system.h"
-#include  "libc/stdio.h"
-
+#include "libc/stdio.h"
+#include "../vga/vga.h"
+#include "../utils/util.h"
 #define MAX_PAGE_ALIGNED_ALLOCS 32
 
 uint32_t last_alloc = 0;
@@ -12,6 +13,8 @@ uint32_t pheap_end = 0;
 uint8_t *pheap_desc = 0;
 uint32_t memory_used = 0;
 
+static void* my_memset(void * ptr, int value, size_t num);
+
 // Initialize the kernel memory manager
 void init_kernel_memory(uint32_t* kernel_end)
 {
@@ -19,8 +22,11 @@ void init_kernel_memory(uint32_t* kernel_end)
     heap_begin = last_alloc;
     pheap_end = 0x400000;
     pheap_begin = pheap_end - (MAX_PAGE_ALIGNED_ALLOCS * 4096);
-    heap_end = pheap_begin;
-    memset((char *)heap_begin, 0, heap_end - heap_begin);
+    heap_end = heap_begin +  0xF4240;
+    my_memset((char *)heap_begin, 0, heap_end - heap_begin);
+    //heap_end = pheap_begin;
+    //my_memset((char *)heap_begin, 0, heap_end - heap_begin);
+
     pheap_desc = (uint8_t *)malloc(MAX_PAGE_ALIGNED_ALLOCS);
     printf("Kernel heap starts at 0x%x\n", last_alloc);
 }
@@ -82,6 +88,12 @@ void* malloc(size_t size)
 
     // Loop through blocks to find an available block with enough size
     uint8_t *mem = (uint8_t *)heap_begin;
+
+    /*
+    printf("last_alloc: %d\nheap_begin: %d\nheap_end: %d\npheap_begin: %d\npheap_begin: %d\npheap_desc: %d\nmemory_used: %d\nmem: %d", 
+    last_alloc, heap_begin, heap_end, pheap_begin, pheap_end, pheap_desc, memory_used, mem);
+    */
+   
     while((uint32_t)mem < last_alloc)
     {
         alloc_t *a = (alloc_t *)mem;
@@ -101,7 +113,7 @@ void* malloc(size_t size)
         {
             a->status = 1;
             printf("RE:Allocated %d bytes from 0x%x to 0x%x\n", size, mem + sizeof(alloc_t), mem + sizeof(alloc_t) + size);
-            memset(mem + sizeof(alloc_t), 0, size);
+            my_memset(mem + sizeof(alloc_t), 0, size);
             memory_used += size + sizeof(alloc_t);
             return (char *)(mem + sizeof(alloc_t));
         }
@@ -115,7 +127,8 @@ void* malloc(size_t size)
     nalloc:;
     if(last_alloc + size + sizeof(alloc_t) >= heap_end)
     {
-        panic("Cannot allocate bytes! Out of memory.\n");
+        printf("Cannot allocate bytes! Out of memory.\n");
+        //panic("Cannot allocate bytes! Out of memory.\n");
     }
     alloc_t *alloc = (alloc_t *)last_alloc;
     alloc->status = 1;
@@ -126,6 +139,16 @@ void* malloc(size_t size)
     last_alloc += 4;
     printf("Allocated %d bytes from 0x%x to 0x%x\n", size, (uint32_t)alloc + sizeof(alloc_t), last_alloc);
     memory_used += size + 4 + sizeof(alloc_t);
-    memset((char *)((uint32_t)alloc + sizeof(alloc_t)), 0, size);
+    my_memset((char *)((uint32_t)alloc + sizeof(alloc_t)), 0, size);
     return (char *)((uint32_t)alloc + sizeof(alloc_t));
+}
+
+
+// Function to set a block of memory with a byte value
+static void* my_memset(void * ptr, int value, size_t num)
+{
+    unsigned char* p=ptr;     // Cast the pointer to unsigned char*
+    while(num--)
+        *p++ = (unsigned char)value;   // Set each byte to the given value
+    return ptr;               // Return the pointer to the block of memory
 }

@@ -1,4 +1,6 @@
 #pragma once
+#include "libc/stdint.h"
+#include "libc/stddef.h"
 
 // Color codes
 #define COLOR_BLACK      0
@@ -57,6 +59,14 @@
 #define MAX_CHARACTERS_PER_ROW 50 
 #define TEXT_COLOR COLOR_GREEN
 
+#define width 80
+#define height 25
+
+void print(const char* s, ...);
+void scrollUp();
+void newLine();
+void Reset();
+
 size_t strlen(const char* str);
 char* itoa(int value, char* str, int base);
 void write_string(int colour, const char *string, int row, int col);
@@ -64,3 +74,4 @@ void vga_printf(int color, int row, int col, const char* format, ...);
 void int_to_hex(int value, char* buffer);
 void int_to_str(int value, char* buffer);
 void printf(const char* format, ...);
+void reset_print();

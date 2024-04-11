@@ -1,5 +1,5 @@
 #include "gdt.h"
-#include "../include/libc/stdint.h"
+#include "libc/stdint.h"
 
 typedef struct
 {

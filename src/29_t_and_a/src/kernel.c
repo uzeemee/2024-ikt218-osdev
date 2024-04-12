@@ -151,7 +151,7 @@ int main(uint32_t magic, struct multiboot_info* mb_info_addr) {
     init_idt();
     init_irq();
     init_pit();
-    //init_kernel_memory(&end);
+    init_kernel_memory(&end);
     //init_paging();
     //print_memory_layout();
     
@@ -172,8 +172,7 @@ int main(uint32_t magic, struct multiboot_info* mb_info_addr) {
     asm volatile ("int $0x04");
     asm volatile ("int $0x05");
     asm volatile ("int $0x06");
-    asm volatile ("int $0x07");
-    asm volatile ("int $0x09");
+    asm volatile ("int $0x07");    asm volatile ("int $0x09");
     asm volatile ("int $0x0F");  // Interrupt 15
     asm volatile ("int $0x10");  // Interrupt 16
     asm volatile ("int $0x11");  // Interrupt 17
@@ -190,5 +189,9 @@ int main(uint32_t magic, struct multiboot_info* mb_info_addr) {
 
     boot_screen();
     //printf("We Moving!");
+    void* address = malloc(20000);
+    printf("%x : %d", &address, address);
+    free(address);
+    print_memory_layout();
     return kernel_main();
 }

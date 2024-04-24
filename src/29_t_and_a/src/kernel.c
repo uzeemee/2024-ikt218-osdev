@@ -56,6 +56,12 @@ void clear_screen() {
 
 
 
+void empty_screen(){
+    clear_screen();
+    Reset();
+
+}
+
 void boot_screen(){
     clear_screen();
     Reset();
@@ -69,8 +75,8 @@ void boot_screen(){
     Reset();
     printf("Booting complete!");
     sleep(500);
-    clear_screen();
-    Reset();
+
+    empty_screen();
 
     const char *welcome[] = {
 """ine#finine#define/**/Alan/**/(fflush(0),j=c=0;++c<b[6]+7;v=b[c]^(b[c+^(+^b[c+^cc""",
@@ -138,11 +144,12 @@ void boot_screen(){
         printf("\033[A\033[K"); // Move cursor up and clear line
         sleep(delay_ms);        // Delay between frames
     }
-    clear_screen();
-    Reset();
+    empty_screen();
     printf("Welcome.\n");
 
 }
+
+
 
 
 
@@ -153,8 +160,11 @@ int main(uint32_t magic, struct multiboot_info* mb_info_addr) {
     init_pit();
     init_kernel_memory(&end);
     //init_paging();
-    //print_memory_layout();
+    print_memory_layout();
     
+    sleep(1000);
+    empty_screen();
+
     //init_timer(1000);
     //printf("Loading...");
     //asm volatile ("int $0x08");
@@ -172,7 +182,8 @@ int main(uint32_t magic, struct multiboot_info* mb_info_addr) {
     asm volatile ("int $0x04");
     asm volatile ("int $0x05");
     asm volatile ("int $0x06");
-    asm volatile ("int $0x07");    asm volatile ("int $0x09");
+    asm volatile ("int $0x07");
+    asm volatile ("int $0x09");   
     asm volatile ("int $0x0F");  // Interrupt 15
     asm volatile ("int $0x10");  // Interrupt 16
     asm volatile ("int $0x11");  // Interrupt 17
@@ -188,10 +199,29 @@ int main(uint32_t magic, struct multiboot_info* mb_info_addr) {
 
 
     boot_screen();
-    //printf("We Moving!");
-    void* address = malloc(20000);
-    printf("%x : %d", &address, address);
-    free(address);
+
+    int *ptr;
+
+    // Allocate memory for an integer using malloc
+    ptr = (int *)malloc(sizeof(int));
+
+    // Check if memory allocation was successful
+    if (ptr == NULL) {
+        printf("Memory allocation failed. Exiting...\n");
+        return 1; // Exit with error code
+    }
+
+    // Assign a value to the memory location
+    *ptr = 42;
+
+    // Print the value
+    printf("The value stored at the allocated memory location is: %d\n", *ptr);
+
+    // Free the allocated memory
+    print_memory_layout();
+    free(ptr);
+    sleep(1000);
+    empty_screen();
     print_memory_layout();
     return kernel_main();
 }
